@@ -44,6 +44,25 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(method: Callable, cache: 'Cache') -> None:
+    """
+    Display the history of calls for a particular function.
+
+    Args:
+        method: The function for which the history of calls will be displayed.
+        cache: An instance of the Cache class to access Redis.
+    """
+    input_key = f"{method.__qualname__}:inputs"
+    output_key = f"{method.__qualname__}:outputs"
+
+    inputs = cache._redis.lrange(input_key, 0, -1)
+    outputs = cache._redis.lrange(output_key, 0, -1)
+
+    print(f"History of calls for function {method.__qualname__}:")
+    for input_args, output in zip(inputs, outputs):
+        print(f"Input: {input_args.decode()}, Output: {output.decode()}")
+
+
 class Cache:
     """
     A simple cache class using Redis as the backend.
